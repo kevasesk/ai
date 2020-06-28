@@ -1,0 +1,6 @@
+pybrain
+PyQt5_gpl-5.11.3
+tests
+venv
+.idea
+__pycache__
