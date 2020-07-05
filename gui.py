@@ -1,6 +1,7 @@
 import sys  # sys нужен для передачи argv в QApplication
 import os
 import numbersGUI # import my gui file
+import random
 
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtWidgets import QApplication, QMainWindow, QGraphicsScene, QGraphicsView
@@ -30,24 +31,54 @@ class NumbersApp(QtWidgets.QMainWindow, numbersGUI.Ui_MainWindow):
 
         self.scene = QGraphicsScene()
         view = QGraphicsView(self.scene, self)
-        view.setGeometry(0,0,400,400)
-        self.drawRect(0,0,400,400)
-
-    def drawRect(self, x1, y1, x2, y2):
-        redBrush = QBrush(Qt.red)
-        blackPen = QPen(Qt.black)
-        #ellipse = self.scene.addRect(x1, y1, x2, y2, blackPen, redBrush)
-
         width, height = 400, 400
-        im = QImage(width, height, QImage.Format_ARGB32)
+        view.setGeometry(0, 0, width, height)
+        self.drawImage(width-5, height-5)
 
-        for x in range(im.width()):
-            for y in range(im.height()):
-                im.setPixel(x, y, QColor(255, x/4 * 2.56, y/4 * 2.56, 255).rgb())
+        self.pixelWidth = 20
+        self.pixelHeight = 20
 
-        self.scene.addPixmap(QPixmap.fromImage(im))
+        self.field = [[0] * 20] * 20
 
 
+        for i in range(20):
+            for j in range(20):
+                randValue = random.randrange(0, 2)
+                self.field[i][j] = randValue
+                if self.field[i][j] == 1:
+                    self.putPixel(i, j)
+
+
+    def mousePressEvent(self, event):
+        self.textEdit.setText('CLICK')
+
+    def drawImage(self, width, height):
+        self.image = QImage(width, height, QImage.Format_ARGB32)
+
+        red = 255
+        green = 255
+        blue = 255
+
+        for x in range(self.image.width()):
+            for y in range(self.image.height()):
+                self.image.setPixel(x, y, QColor(red, green, blue, 255).rgb())
+
+        self.scene.addPixmap(QPixmap.fromImage(self.image))
+
+
+    def putPixel(self, x, y):
+        for i in range(x * self.pixelWidth, x * self.pixelWidth + self.pixelWidth):
+            for j in range(y * self.pixelHeight, y * self.pixelHeight + self.pixelHeight):
+                if i <= 394 and j <= 394:
+                    self.image.setPixel(i, j, QColor(0, 0, 0, 0).rgb())
+
+        self.scene.addPixmap(QPixmap.fromImage(self.image))
+
+
+
+
+    def click(self):
+        self.textEdit.setText('CLICK')
     def clear(self):
         self.textEdit.setText('clear')
 
