@@ -3,7 +3,7 @@ import os
 import numbersGUI # import my gui file
 import random
 
-from PyQt5 import QtGui, QtWidgets
+from PyQt5 import QtGui, QtWidgets, QtCore
 from PyQt5.QtWidgets import QApplication, QMainWindow, QGraphicsScene, QGraphicsView
 from PyQt5.QtGui import QBrush, QPen, QPainter, QPolygon, QPixmap, QImage, QColor
 from PyQt5.QtCore import QPoint, Qt
@@ -13,7 +13,10 @@ class NumbersApp(QtWidgets.QMainWindow, numbersGUI.Ui_MainWindow):
         # Это здесь нужно для доступа к переменным, методам
         # и т.д. в файле gui
         super().__init__()
+
         self.setupUi(self)  # Это нужно для инициализации нашего дизайна
+        self.setMouseTracking(True)
+
         self.pushButton.clicked.connect(self.clear)
         self.pushButton_2.clicked.connect(self.learn)
         self.pushButton_3.clicked.connect(self.activate)
@@ -31,6 +34,7 @@ class NumbersApp(QtWidgets.QMainWindow, numbersGUI.Ui_MainWindow):
 
         self.scene = QGraphicsScene()
         view = QGraphicsView(self.scene, self)
+        view.viewport().installEventFilter(self)
         width, height = 400, 400
         view.setGeometry(0, 0, width, height)
         self.drawImage(width-5, height-5)
@@ -49,8 +53,32 @@ class NumbersApp(QtWidgets.QMainWindow, numbersGUI.Ui_MainWindow):
                     self.putPixel(i, j)
 
 
-    def mousePressEvent(self, event):
-        self.textEdit.setText('CLICK')
+    def eventFilter(self, source, event):
+        if event.type() == QtCore.QEvent.MouseMove and (event.buttons() == QtCore.Qt.LeftButton or event.buttons() == QtCore.Qt.RightButton):
+            pos = event.pos()
+            x = pos.x() / self.pixelWidth
+            y = pos.y() / self.pixelHeight
+
+        if event.type() == QtCore.QEvent.MouseMove:
+            if event.buttons() == QtCore.Qt.NoButton:
+                pass
+                #print("Simple mouse motion")
+            elif event.buttons() == QtCore.Qt.LeftButton:
+                self.putPixel(int(x), int(y))
+                self.putPixel(int(x)+1, int(y)+1)
+                self.putPixel(int(x), int(y)+1)
+                self.putPixel(int(x)+1, int(y))
+            elif event.buttons() == QtCore.Qt.RightButton:
+                self.putPixel(int(x), int(y), 0)
+                self.putPixel(int(x) + 1, int(y) + 1, 0)
+                self.putPixel(int(x), int(y) + 1, 0)
+                self.putPixel(int(x) + 1, int(y), 0)
+        elif event.type() == QtCore.QEvent.MouseButtonPress:
+            if event.button() == QtCore.Qt.LeftButton:
+                pass
+                #print("Press!")
+        return super(NumbersApp, self).eventFilter(source, event)
+
 
     def drawImage(self, width, height):
         self.image = QImage(width, height, QImage.Format_ARGB32)
@@ -66,11 +94,15 @@ class NumbersApp(QtWidgets.QMainWindow, numbersGUI.Ui_MainWindow):
         self.scene.addPixmap(QPixmap.fromImage(self.image))
 
 
-    def putPixel(self, x, y):
+    def putPixel(self, x, y, color=1):
         for i in range(x * self.pixelWidth, x * self.pixelWidth + self.pixelWidth):
             for j in range(y * self.pixelHeight, y * self.pixelHeight + self.pixelHeight):
                 if i <= 394 and j <= 394:
-                    self.image.setPixel(i, j, QColor(0, 0, 0, 0).rgb())
+                    if color == 1:
+                        self.image.setPixel(i, j, QColor(0, 0, 0, 0).rgb())
+                    else:
+                        self.image.setPixel(i, j, QColor(255, 255, 255, 255).rgb())
+
 
         self.scene.addPixmap(QPixmap.fromImage(self.image))
 
@@ -80,7 +112,10 @@ class NumbersApp(QtWidgets.QMainWindow, numbersGUI.Ui_MainWindow):
     def click(self):
         self.textEdit.setText('CLICK')
     def clear(self):
-        self.textEdit.setText('clear')
+        for i in range(20):
+            for j in range(20):
+                self.field[i][j] = 0
+                self.putPixel(i, j, 0)
 
     def learn(self):
         self.textEdit.setText('learn')
