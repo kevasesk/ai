@@ -2,6 +2,7 @@ import sys  # sys нужен для передачи argv в QApplication
 import os
 import numbersGUI # import my gui file
 import random
+from datetime import datetime
 
 from PyQt5 import QtGui, QtWidgets, QtCore
 from PyQt5.QtWidgets import QApplication, QMainWindow, QGraphicsScene, QGraphicsView
@@ -31,6 +32,7 @@ class NumbersApp(QtWidgets.QMainWindow, numbersGUI.Ui_MainWindow):
         self.horizontalSlider_8.setValue(0)
         self.horizontalSlider_9.setValue(0)
         self.horizontalSlider_10.setValue(0)
+        self.textEdit.setText('1')
 
         self.scene = QGraphicsScene()
         view = QGraphicsView(self.scene, self)
@@ -118,10 +120,20 @@ class NumbersApp(QtWidgets.QMainWindow, numbersGUI.Ui_MainWindow):
                 self.putPixel(i, j, 0)
 
     def learn(self):
-        self.textEdit.setText('learn')
+        self.image_save()
 
     def activate(self):
         self.textEdit.setText('Activate')
+
+    def image_save(self):
+        now = datetime.now()
+        nowFormatted = now.strftime("%d_%m_%Y")
+        number = self.textEdit.toPlainText()
+        self.image.save('samples/' +
+                        number + '_' +
+                        str(datetime.timestamp(now)) + '_' +
+                        str(nowFormatted) + '.jpg','JPG'
+                        )
 
 def main():
     app = QtWidgets.QApplication(sys.argv)  # Новый экземпляр QApplication
