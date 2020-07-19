@@ -1,9 +1,10 @@
-import sys  # sys нужен для передачи argv в QApplication
+import sys
 import os
 import numbersGUI # import my gui file
 import random
-from datetime import datetime
+import settings
 
+from datetime import datetime
 from PyQt5 import QtGui, QtWidgets, QtCore
 from PyQt5.QtWidgets import QApplication, QMainWindow, QGraphicsScene, QGraphicsView
 from PyQt5.QtGui import QBrush, QPen, QPainter, QPolygon, QPixmap, QImage, QColor
@@ -34,47 +35,63 @@ class NumbersApp(QtWidgets.QMainWindow, numbersGUI.Ui_MainWindow):
         self.horizontalSlider_10.setValue(0)
         self.textEdit.setText('1')
 
+        #draw field
         self.scene = QGraphicsScene()
         view = QGraphicsView(self.scene, self)
         view.viewport().installEventFilter(self)
-        width, height = 400, 400
+        width, height = settings.fieldWidth, settings.fieldWidth
         view.setGeometry(0, 0, width, height)
-        self.drawImage(width-5, height-5)
+        self.initImage(width-5, height-5)
 
-        self.pixelWidth = 20
-        self.pixelHeight = 20
+        settings.pixelWidth = 20
+        settings.pixelHeight = 20
 
-        self.field = [[0] * 20] * 20
-
+        #init field
+        self.field = [[0] * settings.pixelWidth for i in range(settings.pixelHeight)]
 
         for i in range(20):
             for j in range(20):
-                randValue = random.randrange(0, 2)
-                self.field[i][j] = randValue
-                if self.field[i][j] == 1:
-                    self.putPixel(i, j)
-
+                self.field[i][j] = 1
+        self.draw()
 
     def eventFilter(self, source, event):
         if event.type() == QtCore.QEvent.MouseMove and (event.buttons() == QtCore.Qt.LeftButton or event.buttons() == QtCore.Qt.RightButton):
             pos = event.pos()
-            x = pos.x() / self.pixelWidth
-            y = pos.y() / self.pixelHeight
+            x = pos.x() / settings.pixelWidth
+            y = pos.y() / settings.pixelHeight
 
         if event.type() == QtCore.QEvent.MouseMove:
             if event.buttons() == QtCore.Qt.NoButton:
                 pass
                 #print("Simple mouse motion")
             elif event.buttons() == QtCore.Qt.LeftButton:
-                self.putPixel(int(x), int(y))
-                self.putPixel(int(x)+1, int(y)+1)
-                self.putPixel(int(x), int(y)+1)
-                self.putPixel(int(x)+1, int(y))
+                try:
+                    self.field[int(x)][int(y)] = 1
+                    self.field[int(x) + 1][int(y)] = 1
+                    self.field[int(x)][int(y) + 1] = 1
+                    self.field[int(x) + 1][int(y)] = 1
+
+                    self.putPixel(int(x), int(y))
+                    self.putPixel(int(x) + 1, int(y) + 1)
+                    self.putPixel(int(x), int(y) + 1)
+                    self.putPixel(int(x) + 1, int(y))
+                except Exception:
+                    pass
+
             elif event.buttons() == QtCore.Qt.RightButton:
-                self.putPixel(int(x), int(y), 0)
-                self.putPixel(int(x) + 1, int(y) + 1, 0)
-                self.putPixel(int(x), int(y) + 1, 0)
-                self.putPixel(int(x) + 1, int(y), 0)
+                try:
+                    self.field[int(x)][int(y)] = 0
+                    self.field[int(x) + 1][int(y)] = 0
+                    self.field[int(x)][int(y) + 1] = 0
+                    self.field[int(x) + 1][int(y)] = 0
+
+                    self.putPixel(int(x), int(y), 0)
+                    self.putPixel(int(x) + 1, int(y) + 1, 0)
+                    self.putPixel(int(x), int(y) + 1, 0)
+                    self.putPixel(int(x) + 1, int(y), 0)
+                except Exception:
+                    pass
+
         elif event.type() == QtCore.QEvent.MouseButtonPress:
             if event.button() == QtCore.Qt.LeftButton:
                 pass
@@ -82,7 +99,30 @@ class NumbersApp(QtWidgets.QMainWindow, numbersGUI.Ui_MainWindow):
         return super(NumbersApp, self).eventFilter(source, event)
 
 
-    def drawImage(self, width, height):
+    def draw(self):
+        pixelInRow = int(settings.fieldWidth / settings.pixelWidth)
+        pixelInColumn = int(settings.fieldHeight / settings.pixelHeight)
+        for i in range(pixelInRow):
+            for j in range(pixelInColumn):
+                if self.field[i][j] == 1:
+                    self.putPixel(i, j)
+                if self.field[i][j] == 0:
+                    self.putPixel(i, j, 0)
+
+    def putPixel(self, x, y, color=1):
+        for i in range(x * settings.pixelWidth, x * settings.pixelWidth + settings.pixelWidth):
+            for j in range(y * settings.pixelHeight, y * settings.pixelHeight + settings.pixelHeight):
+                if i <= 394 and j <= 394:
+                    if color == 1:
+                        self.image.setPixel(i, j, QColor(0, 0, 0, 0).rgb())
+                    elif color == 0:
+                        self.image.setPixel(i, j, QColor(255, 255, 255, 255).rgb())
+                    else:
+                        self.image.setPixel(i, j, QColor(255, 255, 255, 255).rgb())
+
+        self.scene.addPixmap(QPixmap.fromImage(self.image))
+
+    def initImage(self, width, height):
         self.image = QImage(width, height, QImage.Format_ARGB32)
 
         red = 255
@@ -96,20 +136,6 @@ class NumbersApp(QtWidgets.QMainWindow, numbersGUI.Ui_MainWindow):
         self.scene.addPixmap(QPixmap.fromImage(self.image))
 
 
-    def putPixel(self, x, y, color=1):
-        for i in range(x * self.pixelWidth, x * self.pixelWidth + self.pixelWidth):
-            for j in range(y * self.pixelHeight, y * self.pixelHeight + self.pixelHeight):
-                if i <= 394 and j <= 394:
-                    if color == 1:
-                        self.image.setPixel(i, j, QColor(0, 0, 0, 0).rgb())
-                    else:
-                        self.image.setPixel(i, j, QColor(255, 255, 255, 255).rgb())
-
-
-        self.scene.addPixmap(QPixmap.fromImage(self.image))
-
-
-
 
     def click(self):
         self.textEdit.setText('CLICK')
@@ -117,7 +143,7 @@ class NumbersApp(QtWidgets.QMainWindow, numbersGUI.Ui_MainWindow):
         for i in range(20):
             for j in range(20):
                 self.field[i][j] = 0
-                self.putPixel(i, j, 0)
+        self.draw()
 
     def learn(self):
         self.image_save()
