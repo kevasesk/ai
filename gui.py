@@ -48,10 +48,6 @@ class NumbersApp(QtWidgets.QMainWindow, numbersGUI.Ui_MainWindow):
 
         #init field
         self.field = [[0] * settings.pixelWidth for i in range(settings.pixelHeight)]
-
-        for i in range(20):
-            for j in range(20):
-                self.field[i][j] = 1
         self.draw()
 
     def eventFilter(self, source, event):
@@ -155,7 +151,7 @@ class NumbersApp(QtWidgets.QMainWindow, numbersGUI.Ui_MainWindow):
         now = datetime.now()
         nowFormatted = now.strftime("%d_%m_%Y")
         number = self.textEdit.toPlainText()
-        self.image.save('samples/' +
+        self.image.save('samples/' + number + '/' +
                         number + '_' +
                         str(datetime.timestamp(now)) + '_' +
                         str(nowFormatted) + '.jpg','JPG'
