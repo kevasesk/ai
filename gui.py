@@ -3,6 +3,7 @@ import os
 import numbersGUI # import my gui file
 import random
 import settings
+from numbersNetwork import Network
 
 from datetime import datetime
 from PyQt5 import QtGui, QtWidgets, QtCore
@@ -62,10 +63,10 @@ class NumbersApp(QtWidgets.QMainWindow, numbersGUI.Ui_MainWindow):
                 #print("Simple mouse motion")
             elif event.buttons() == QtCore.Qt.LeftButton:
                 try:
-                    self.field[int(x)][int(y)] = 1
-                    self.field[int(x) + 1][int(y)] = 1
-                    self.field[int(x)][int(y) + 1] = 1
-                    self.field[int(x) + 1][int(y)] = 1
+                    self.field[int(y)][int(x)] = 1
+                    self.field[int(y) + 1][int(x)+1] = 1
+                    self.field[int(y)][int(x) + 1] = 1
+                    self.field[int(y) + 1][int(x)] = 1
 
                     self.putPixel(int(x), int(y))
                     self.putPixel(int(x) + 1, int(y) + 1)
@@ -76,10 +77,10 @@ class NumbersApp(QtWidgets.QMainWindow, numbersGUI.Ui_MainWindow):
 
             elif event.buttons() == QtCore.Qt.RightButton:
                 try:
-                    self.field[int(x)][int(y)] = 0
-                    self.field[int(x) + 1][int(y)] = 0
-                    self.field[int(x)][int(y) + 1] = 0
-                    self.field[int(x) + 1][int(y)] = 0
+                    self.field[int(y)][int(x)] = 0
+                    self.field[int(y) + 1][int(x)+1] = 0
+                    self.field[int(y)][int(x) + 1] = 0
+                    self.field[int(y) + 1][int(x)] = 0
 
                     self.putPixel(int(x), int(y), 0)
                     self.putPixel(int(x) + 1, int(y) + 1, 0)
@@ -145,7 +146,8 @@ class NumbersApp(QtWidgets.QMainWindow, numbersGUI.Ui_MainWindow):
         self.image_save()
 
     def activate(self):
-        self.textEdit.setText('Activate')
+        number = self.textEdit.toPlainText()
+        Network.activate(self.field, number)
 
     def image_save(self):
         now = datetime.now()

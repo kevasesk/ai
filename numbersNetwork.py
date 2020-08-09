@@ -2,50 +2,84 @@ from pybrain.tools.shortcuts import buildNetwork #network
 from pybrain.structure import TanhLayer
 from pybrain.datasets import SupervisedDataSet #dataset
 from pybrain.supervised.trainers import BackpropTrainer #traning algorithm
-
+import numpy as np
+import settings
 
 import matplotlib.pylab as plt
 #import numpy as np
 
-ds = SupervisedDataSet(15, 10)
 
-one = (
-    0, 0, 1,
-    0, 0, 1,
-    0, 0, 1,
-    0, 0, 1,
-    0, 0, 1
-)
-oneResult = (
-    0,1,0,0,0,0,0,0,0,0,0
-)
-#ds.addSample((0, 0), (0,))
-#ds.addSample((0, 1), (1,))
-#ds.addSample((1, 0), (1,))
-#ds.addSample((1, 1), (0,))
+class Network:
 
-#print(ds['input'])
-#print(ds['target'])
+    inputs = []
+    result = None
+    ds = None
+    net = None
 
-net = buildNetwork(15, 7, 7, 10, bias=True, hiddenclass=TanhLayer)
+    def network(self):
+        if Network.ds is None :
+            Network.ds = SupervisedDataSet(settings.inputs, settings.outputs)
+            Network.net = buildNetwork(settings.inputs, settings.hidden_neurons1, settings.hidden_neurons2, settings.outputs,
+                               bias=True, hiddenclass=TanhLayer)
 
-# указываем какую сеть и какими данными обучать
-trainer = BackpropTrainer(net, ds)
+            #should add samples
+            Network.ds.addSample(Network.inputs, Network.result)
+        # one = (
+        #     0, 0, 1,
+        #     0, 0, 1,
+        #     0, 0, 1,
+        #     0, 0, 1,
+        #     0, 0, 1
+        # )
+        # oneResult = (
+        #     0, 1, 0, 0, 0, 0, 0, 0, 0, 0
+        # )
 
-iterations = []
-errors = []
-for iteration in range(1, 1000):
-    iterations.append(iteration)
-    errors.append(trainer.train())
-# далее вызываю метод activate с входными значениями  - это получение ответа от заданных параметров
-print(net.activate((2, 1)))
 
-plt.plot(iterations, errors)
-plt.xlabel('iterations')
-plt.ylabel('errors')
-#plt.show()
+        # ds.addSample((0, 1), (1,))
+        # ds.addSample((1, 0), (1,))
+        # ds.addSample((1, 1), (0,))
 
-# обучаем до сходимости(тут не совсем понял, но предположил, что обучает пока значение ошибки не будет удовлетворительным)
-#print(trainer.trainUntilConvergence())
+        # print(ds['input'])
+        # print(ds['target'])
 
+
+
+        # указываем какую сеть и какими данными обучать
+        trainer = BackpropTrainer(Network.net, Network.ds)
+
+        iterations = []
+        errors = []
+        for iteration in range(1, settings.iterations):
+            iterations.append(iteration)
+            errors.append(trainer.train())
+        # далее вызываю метод activate с входными значениями  - это получение ответа от заданных параметров
+        print(Network.net.activate((2, 1)))
+
+        plt.plot(iterations, errors)
+        plt.xlabel('iterations')
+        plt.ylabel('errors')
+        plt.show()
+
+        # обучаем до сходимости(тут не совсем понял, но предположил, что обучает пока значение ошибки не будет удовлетворительным)
+        print(trainer.trainUntilConvergence())
+
+    @staticmethod
+    def learn(field, number):
+        for i in range(len(field)):
+            for j in range(len(field[0])):  #TODO wrong. only for square
+                Network.inputs.append(field[i][j])
+
+        Network.result = [0 for i in range(10)]
+        Network.result[number] = 1
+        Network.learn()
+
+    @staticmethod
+    def activate(field):
+        for i in range(len(field)):
+            for j in range(len(field[0])):  # TODO wrong. only for square
+                Network.inputs.append(field[i][j])
+
+        Network.result = [0 for i in range(10)]
+        Network.get_result()
 
