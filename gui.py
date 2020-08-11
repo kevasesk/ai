@@ -143,11 +143,12 @@ class NumbersApp(QtWidgets.QMainWindow, numbersGUI.Ui_MainWindow):
         self.draw()
 
     def learn(self):
-        self.image_save()
+        #self.image_save()
+        number = self.textEdit.toPlainText()
+        Network.addSample(self.field, number)
 
     def activate(self):
-        number = self.textEdit.toPlainText()
-        Network.activate(self.field, number)
+        Network.activate(self.field)
 
     def image_save(self):
         now = datetime.now()

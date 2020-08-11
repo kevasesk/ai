@@ -4,6 +4,7 @@ from pybrain.datasets import SupervisedDataSet #dataset
 from pybrain.supervised.trainers import BackpropTrainer #traning algorithm
 import numpy as np
 import settings
+import pickle
 
 import matplotlib.pylab as plt
 #import numpy as np
@@ -64,6 +65,7 @@ class Network:
         # обучаем до сходимости(тут не совсем понял, но предположил, что обучает пока значение ошибки не будет удовлетворительным)
         print(trainer.trainUntilConvergence())
 
+
     @staticmethod
     def learn(field, number):
         for i in range(len(field)):
@@ -72,14 +74,40 @@ class Network:
 
         Network.result = [0 for i in range(10)]
         Network.result[number] = 1
-        Network.learn()
+        Network.addSample()
+
+    @staticmethod
+    def loadNetworkFromMemory():
+        unserialisedDict = pickle.load(open(settings.memory_file, 'rb'))
+        Network.ds = unserialisedDict['ds']
+        Network.net = unserialisedDict['net']
+
+    @staticmethod
+    def saveNetworkToMemory():
+
+        serialisedDict = dict()
+        serialisedDict['ds'] = Network.ds
+        serialisedDict['new'] = Network.net
+
+        filehandler = open(settings.memory_file, 'wb')
+        pickle.dump(serialisedDict, filehandler)
+
+    @staticmethod
+    def addSample(inputs, result):
+        #loadNetworkFromMemory
+        #Network.ds.addSample(inputs, result)
+        #saveNetworkToMemory
+        pass
 
     @staticmethod
     def activate(field):
+        inputs = []
         for i in range(len(field)):
             for j in range(len(field[0])):  # TODO wrong. only for square
-                Network.inputs.append(field[i][j])
+                inputs.append(field[i][j])
 
-        Network.result = [0 for i in range(10)]
-        Network.get_result()
+        print(Network.net.activate(inputs))
+
+if __name__ == '__main__':
+    pass
 
