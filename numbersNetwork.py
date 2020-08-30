@@ -2,12 +2,14 @@ from pybrain.tools.shortcuts import buildNetwork #network
 from pybrain.structure import TanhLayer
 from pybrain.datasets import SupervisedDataSet #dataset
 from pybrain.supervised.trainers import BackpropTrainer #traning algorithm
-import numpy as np
-import settings
-import pickle
+from os import listdir
+from os.path import isfile, join
+from PIL import Image
+from data import Data
 
+import numpy as np
+import os, settings, pickle, sys
 import matplotlib.pylab as plt
-#import numpy as np
 
 
 class Network:
@@ -17,37 +19,46 @@ class Network:
     ds = None
     net = None
 
-    def network(self):
-        if Network.ds is None :
-            Network.ds = SupervisedDataSet(settings.inputs, settings.outputs)
-            Network.net = buildNetwork(settings.inputs, settings.hidden_neurons1, settings.hidden_neurons2, settings.outputs,
-                               bias=True, hiddenclass=TanhLayer)
+    def initNetwork(self):
+        if self.ds is None:
+            self.loadNetworkFromFile()
+            if self.ds is None:
+                self.ds = SupervisedDataSet(settings.inputs, settings.outputs)
+                self.net = buildNetwork(settings.inputs, settings.hidden_neurons1,
+                                        settings.outputs,
+                                        bias=True, hiddenclass=TanhLayer)
+                self.saveNetworkToFile()
 
-            #should add samples
-            Network.ds.addSample(Network.inputs, Network.result)
-        # one = (
-        #     0, 0, 1,
-        #     0, 0, 1,
-        #     0, 0, 1,
-        #     0, 0, 1,
-        #     0, 0, 1
-        # )
-        # oneResult = (
-        #     0, 1, 0, 0, 0, 0, 0, 0, 0, 0
-        # )
+    def loadNetworkFromFile(self):
+        if os.path.exists(settings.memory_file) and os.path.getsize(settings.memory_file) > 0:
+            file = open(settings.memory_file, 'rb')
+            unserialisedDict = pickle.load(file)
+            self.ds = unserialisedDict['ds']
+            self.net = unserialisedDict['net']
+            file.close()
+        else:
+            open(settings.memory_file, 'a').close()
 
+    def saveNetworkToFile(self):
+        serialisedDict = dict()
+        serialisedDict['ds'] = self.ds
+        serialisedDict['net'] = self.net
+        filehandler = open(settings.memory_file, 'wb')
+        pickle.dump(serialisedDict, filehandler)
+        filehandler.close()
 
-        # ds.addSample((0, 1), (1,))
-        # ds.addSample((1, 0), (1,))
-        # ds.addSample((1, 1), (0,))
+    def addSample(self, inputs, result):
+        self.initNetwork()
+        inputsEncoded = self.convertInputs(inputs)
+        resultEncoded = [0 for i in range(10)]
+        resultEncoded[int(result)] = 1
+        self.ds.addSample(inputsEncoded, resultEncoded)
+        self.saveNetworkToFile()
 
-        # print(ds['input'])
-        # print(ds['target'])
-
-
-
-        # указываем какую сеть и какими данными обучать
-        trainer = BackpropTrainer(Network.net, Network.ds)
+    def activate(self, field):
+        self.initNetwork()
+        inputs = self.convertInputs(field)
+        trainer = BackpropTrainer(self.net, self.ds)
 
         iterations = []
         errors = []
@@ -55,59 +66,29 @@ class Network:
             iterations.append(iteration)
             errors.append(trainer.train())
         # далее вызываю метод activate с входными значениями  - это получение ответа от заданных параметров
-        print(Network.net.activate((2, 1)))
+        networkResult = self.net.activate(inputs)
+        print(self.formatNumbersForForm(networkResult))
+        return self.formatNumbersForForm(networkResult)
 
-        plt.plot(iterations, errors)
-        plt.xlabel('iterations')
-        plt.ylabel('errors')
-        plt.show()
+    def convertInputs(self, inputs):
+        result = []
+        for row in inputs:
+            result += row
 
-        # обучаем до сходимости(тут не совсем понял, но предположил, что обучает пока значение ошибки не будет удовлетворительным)
-        print(trainer.trainUntilConvergence())
-
-
-    @staticmethod
-    def learn(field, number):
-        for i in range(len(field)):
-            for j in range(len(field[0])):  #TODO wrong. only for square
-                Network.inputs.append(field[i][j])
-
-        Network.result = [0 for i in range(10)]
-        Network.result[number] = 1
-        Network.addSample()
-
-    @staticmethod
-    def loadNetworkFromMemory():
-        unserialisedDict = pickle.load(open(settings.memory_file, 'rb'))
-        Network.ds = unserialisedDict['ds']
-        Network.net = unserialisedDict['net']
-
-    @staticmethod
-    def saveNetworkToMemory():
-
-        serialisedDict = dict()
-        serialisedDict['ds'] = Network.ds
-        serialisedDict['new'] = Network.net
-
-        filehandler = open(settings.memory_file, 'wb')
-        pickle.dump(serialisedDict, filehandler)
-
-    @staticmethod
-    def addSample(inputs, result):
-        #loadNetworkFromMemory
-        #Network.ds.addSample(inputs, result)
-        #saveNetworkToMemory
-        pass
-
-    @staticmethod
-    def activate(field):
-        inputs = []
-        for i in range(len(field)):
-            for j in range(len(field[0])):  # TODO wrong. only for square
-                inputs.append(field[i][j])
-
-        print(Network.net.activate(inputs))
+        return result
+    def formatNumbersForForm(self, results):
+        formatedResults = []
+        for res in results:
+            if res < 0:
+                formatedResults.append(0)
+            if res >= 0 and res < 1:
+                formatedResults.append(int(res * 100))
+            if res > 1:
+                formatedResults.append(0)
+        return formatedResults
 
 if __name__ == '__main__':
+    network = Network()
+    network.loadSamples()
     pass
 

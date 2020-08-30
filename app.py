@@ -1,9 +1,6 @@
-import sys
-import os
-import numbersGUI # import my gui file
-import random
-import settings
+import settings, random, os, sys, numbersGUI
 from numbersNetwork import Network
+from data import Data
 
 from datetime import datetime
 from PyQt5 import QtGui, QtWidgets, QtCore
@@ -12,10 +9,14 @@ from PyQt5.QtGui import QBrush, QPen, QPainter, QPolygon, QPixmap, QImage, QColo
 from PyQt5.QtCore import QPoint, Qt
 
 class NumbersApp(QtWidgets.QMainWindow, numbersGUI.Ui_MainWindow):
+
+    networkObject = None
+
     def __init__(self):
         # Это здесь нужно для доступа к переменным, методам
         # и т.д. в файле gui
         super().__init__()
+        self.networkObject = Network()
 
         self.setupUi(self)  # Это нужно для инициализации нашего дизайна
         self.setMouseTracking(True)
@@ -143,22 +144,37 @@ class NumbersApp(QtWidgets.QMainWindow, numbersGUI.Ui_MainWindow):
         self.draw()
 
     def learn(self):
-        #self.image_save()
-        number = self.textEdit.toPlainText()
-        Network.addSample(self.field, number)
+        self.image_save()
+        #number = self.textEdit.toPlainText()
+        #self.networkObject.addSample(self.field, number)
 
     def activate(self):
-        Network.activate(self.field)
+        answer = self.networkObject.activate(self.field)
+
+        self.horizontalSlider_10.setValue(answer[0])  # 0
+        self.horizontalSlider.setValue(answer[1])
+        self.horizontalSlider_2.setValue(answer[2])
+        self.horizontalSlider_3.setValue(answer[3])
+        self.horizontalSlider_4.setValue(answer[4])
+        self.horizontalSlider_5.setValue(answer[5])
+        self.horizontalSlider_6.setValue(answer[6])
+        self.horizontalSlider_7.setValue(answer[7])
+        self.horizontalSlider_8.setValue(answer[8])
+        self.horizontalSlider_9.setValue(answer[9])
+
+
 
     def image_save(self):
-        now = datetime.now()
-        nowFormatted = now.strftime("%d_%m_%Y")
-        number = self.textEdit.toPlainText()
-        self.image.save('samples/' + number + '/' +
-                        number + '_' +
-                        str(datetime.timestamp(now)) + '_' +
-                        str(nowFormatted) + '.jpg','JPG'
-                        )
+        data = Data()
+        data.add(self.field)
+        # now = datetime.now()
+        # nowFormatted = now.strftime("%d_%m_%Y")
+        # number = self.textEdit.toPlainText()
+        # self.image.save('samples/' + number + '/' +
+        #                 number + '_' +
+        #                 str(datetime.timestamp(now)) + '_' +
+        #                 str(nowFormatted) + '.jpg','JPG'
+        #                 )
 
 def main():
     app = QtWidgets.QApplication(sys.argv)  # Новый экземпляр QApplication
