@@ -1,9 +1,14 @@
-import settings, pickle, os
+import settings, pickle, os, sys
 
 class Data:
-    def add(self, dataItem):
+    def add(self, inputs, result):
         fileData = self.get()
-        fileData.append(dataItem)
+        sampleDict = dict()
+        sampleDict['inputs'] = inputs
+        resultEncoded = [0 for i in range(10)]
+        resultEncoded[int(result)] = 1
+        sampleDict['result'] = resultEncoded
+        fileData.append(sampleDict)
 
         filehandler = open(settings.data_file, 'wb')
         pickle.dump(fileData, filehandler)

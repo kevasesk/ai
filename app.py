@@ -162,11 +162,17 @@ class NumbersApp(QtWidgets.QMainWindow, numbersGUI.Ui_MainWindow):
         self.horizontalSlider_8.setValue(answer[8])
         self.horizontalSlider_9.setValue(answer[9])
 
+    def convertInputs(self, inputs):
+        result = []
+        for row in inputs:
+            result += row
 
+        return result
 
     def image_save(self):
         data = Data()
-        data.add(self.field)
+        result = self.textEdit.toPlainText()
+        data.add(self.convertInputs(self.field), result)
         # now = datetime.now()
         # nowFormatted = now.strftime("%d_%m_%Y")
         # number = self.textEdit.toPlainText()

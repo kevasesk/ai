@@ -27,6 +27,11 @@ class Network:
                 self.net = buildNetwork(settings.inputs, settings.hidden_neurons1,
                                         settings.outputs,
                                         bias=True, hiddenclass=TanhLayer)
+                data = Data()
+                savedSamples = data.get()
+                if savedSamples:
+                    for sample in savedSamples:
+                        self.addSample(sample['inputs'], sample['result'])
                 self.saveNetworkToFile()
 
     def loadNetworkFromFile(self):
@@ -49,11 +54,7 @@ class Network:
 
     def addSample(self, inputs, result):
         self.initNetwork()
-        inputsEncoded = self.convertInputs(inputs)
-        resultEncoded = [0 for i in range(10)]
-        resultEncoded[int(result)] = 1
-        self.ds.addSample(inputsEncoded, resultEncoded)
-        self.saveNetworkToFile()
+        self.ds.addSample(inputs, result)
 
     def activate(self, field):
         self.initNetwork()
@@ -67,7 +68,7 @@ class Network:
             errors.append(trainer.train())
         # далее вызываю метод activate с входными значениями  - это получение ответа от заданных параметров
         networkResult = self.net.activate(inputs)
-        print(self.formatNumbersForForm(networkResult))
+        print(networkResult)
         return self.formatNumbersForForm(networkResult)
 
     def convertInputs(self, inputs):
@@ -76,6 +77,7 @@ class Network:
             result += row
 
         return result
+
     def formatNumbersForForm(self, results):
         formatedResults = []
         for res in results:
