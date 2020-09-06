@@ -1,5 +1,5 @@
-import settings, random, os, sys, numbersGUI
-from numbersNetwork import Network
+import settings, os, sys, numbersGUI
+from network import Network
 from data import Data
 
 from datetime import datetime

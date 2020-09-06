@@ -11,5 +11,5 @@ hidden_neurons1 = int(20 * 20 / 2)
 hidden_neurons2 = int(20 * 20 / 2)
 iterations = 5000
 
-memory_file = 'network_memory.pkl'
-data_file = '_samplesData.pkl'
+memory_file = 'data/_network_memory.pkl'
+data_file = 'data/_samplesData.pkl'
